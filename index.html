@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>K218b - Exoplanet Discovery</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { primary: "#8E6FF7", secondary: "" },
+            borderRadius: {
+              none: "0px",
+              sm: "8px",
+              DEFAULT: "12px",
+              md: "16px",
+              lg: "20px",
+              xl: "24px",
+              "2xl": "28px",
+              "3xl": "32px",
+              full: "9999px",
+              button: "12px",
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <style>
+      :where([class^="ri-"])::before { content: "\f3c2"; }
+
+      body {
+          font-family: 'Space Grotesk', sans-serif;
+          background-color: #0a0a14;
+          color: #e0e0ff;
+          overflow-x: hidden;
+      }
+
+      .star {
+          position: absolute;
+          background-color: white;
+          border-radius: 50%;
+          opacity: 0.7;
+          animation: twinkle 3s infinite ease-in-out;
+      }
+
+      @keyframes twinkle {
+          0%, 100% { opacity: 0.2; }
+          50% { opacity: 0.7; }
+      }
+
+      .constellation-line {
+          position: absolute;
+          background: linear-gradient(90deg, rgba(142, 111, 247, 0), rgba(142, 111, 247, 0.5), rgba(142, 111, 247, 0));
+          transform-origin: left center;
+          animation: pulse 8s infinite ease-in-out;
+      }
+
+      @keyframes pulse {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.7; }
+      }
+
+      .planet-wrapper {
+          position: relative;
+          width: 400px;
+          height: 400px;
+          perspective: 1000px;
+      }
+
+      .planet {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: radial-gradient(circle at 30% 30%, #a78bff, #6e4fd1 40%, #2c1d6d 80%);
+          box-shadow: 0 0 60px rgba(142, 111, 247, 0.4);
+          transform-style: preserve-3d;
+      }
+
+      .planet-ring {
+          position: absolute;
+          width: 140%;
+          height: 20px;
+          left: -20%;
+          top: calc(50% - 10px);
+          border-radius: 50%;
+          background: linear-gradient(90deg, rgba(142, 111, 247, 0.1), rgba(142, 111, 247, 0.3), rgba(142, 111, 247, 0.1));
+          transform: rotateX(75deg);
+      }
+
+      .planet-spot {
+          position: absolute;
+          border-radius: 50%;
+          background-color: rgba(255, 255, 255, 0.1);
+          transform: translateZ(1px);
+      }
+
+      @keyframes rotate {
+          0% { transform: rotateY(0deg) rotateX(10deg); }
+          100% { transform: rotateY(360deg) rotateX(10deg); }
+      }
+
+      .orbit {
+          position: absolute;
+          border-radius: 50%;
+          border: 1px solid rgba(142, 111, 247, 0.2);
+          transform: rotateX(75deg);
+      }
+
+      .orbit-dot {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          background-color: #8E6FF7;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+      }
+
+      .vector-wave {
+          position: absolute;
+          width: 100%;
+          height: 100px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%238E6FF7' fill-opacity='0.1' d='M0,160L48,149.3C96,139,192,117,288,122.7C384,128,480,160,576,165.3C672,171,768,149,864,149.3C960,149,1056,171,1152,176C1248,181,1344,171,1392,165.3L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+          background-size: cover;
+          pointer-events: none;
+      }
+
+      .particle {
+          position: absolute;
+          background-color: rgba(142, 111, 247, 0.6);
+          border-radius: 50%;
+          pointer-events: none;
+          opacity: 0;
+          transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+      }
+
+      .info-card {
+          background: rgba(20, 20, 40, 0.6);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(142, 111, 247, 0.2);
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .info-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 30px rgba(142, 111, 247, 0.2);
+      }
+
+      .vector-icon {
+          position: relative;
+          width: 60px;
+          height: 60px;
+          transition: transform 0.3s ease;
+      }
+
+      .info-card:hover .vector-icon {
+          transform: scale(1.1);
+      }
+
+      .vector-line {
+          position: absolute;
+          background: linear-gradient(90deg, rgba(142, 111, 247, 0), rgba(142, 111, 247, 0.5), rgba(142, 111, 247, 0));
+          transform-origin: left center;
+          opacity: 0;
+          transition: opacity 0.5s ease;
+      }
+
+      .progress-bar {
+          height: 6px;
+          background: rgba(142, 111, 247, 0.2);
+          border-radius: 3px;
+          overflow: hidden;
+      }
+
+      .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #8E6FF7, #a78bff);
+          border-radius: 3px;
+          transition: width 1s ease;
+      }
+
+      .custom-cursor {
+          position: fixed;
+          width: 20px;
+          height: 20px;
+          border: 2px solid #8E6FF7;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          pointer-events: none;
+          transition: width 0.3s, height 0.3s;
+          z-index: 9999;
+      }
+
+      .cursor-dot {
+          position: fixed;
+          width: 4px;
+          height: 4px;
+          background-color: #8E6FF7;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          pointer-events: none;
+          z-index: 9999;
+      }
+
+      .nav-link {
+          position: relative;
+          overflow: hidden;
+      }
+
+      .nav-link::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 0;
+          height: 2px;
+          background-color: #8E6FF7;
+          transition: width 0.3s ease;
+      }
+
+      .nav-link:hover::after {
+          width: 100%;
+      }
+
+      .scroll-indicator {
+          animation: bounce 2s infinite;
+      }
+
+      @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% {
+              transform: translateY(0);
+          }
+          40% {
+              transform: translateY(-10px);
+          }
+          60% {
+              transform: translateY(-5px);
+          }
+      }
+
+      .morphing-text {
+          background: linear-gradient(90deg, #8E6FF7, #a78bff, #6e4fd1, #8E6FF7);
+          background-size: 300% 100%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: gradient 6s ease infinite;
+      }
+
+      @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+      }
+
+      .hotspot {
+          position: absolute;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background-color: rgba(142, 111, 247, 0.3);
+          cursor: pointer;
+          transition: all 0.3s ease;
+      }
+
+      .hotspot::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 10px;
+          height: 10px;
+          background-color: #8E6FF7;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+      }
+
+      .hotspot::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 20px;
+          height: 20px;
+          background-color: rgba(142, 111, 247, 0.3);
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          animation: pulse-ring 2s infinite;
+      }
+
+      @keyframes pulse-ring {
+          0% {
+              width: 20px;
+              height: 20px;
+              opacity: 0.3;
+          }
+          100% {
+              width: 40px;
+              height: 40px;
+              opacity: 0;
+          }
+      }
+
+      .hotspot-info {
+          position: absolute;
+          background: rgba(20, 20, 40, 0.9);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(142, 111, 247, 0.3);
+          padding: 10px;
+          border-radius: 8px;
+          width: 200px;
+          opacity: 0;
+          transform: translateY(10px);
+          transition: all 0.3s ease;
+          pointer-events: none;
+          z-index: 10;
+      }
+
+      .hotspot:hover .hotspot-info {
+          opacity: 1;
+          transform: translateY(0);
+      }
+
+      .dna-helix {
+          position: relative;
+          width: 100%;
+          height: 100px;
+          overflow: hidden;
+      }
+
+      .dna-strand {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          animation: dna-rotate 20s linear infinite;
+      }
+
+      @keyframes dna-rotate {
+          0% { transform: rotateX(0deg); }
+          100% { transform: rotateX(360deg); }
+      }
+
+      .dna-rung {
+          position: absolute;
+          width: 30%;
+          height: 2px;
+          background: linear-gradient(90deg, rgba(142, 111, 247, 0.7), rgba(142, 111, 247, 0));
+          transform-origin: left center;
+      }
+
+      .temperature-gradient {
+          height: 10px;
+          background: linear-gradient(90deg, #3b82f6, #8E6FF7, #ef4444);
+          border-radius: 5px;
+      }
+
+      .temperature-marker {
+          width: 4px;
+          height: 16px;
+          background-color: white;
+          border-radius: 2px;
+          transform: translateY(-3px);
+          transition: left 0.5s ease;
+      }
+
+      input[type="range"] {
+          -webkit-appearance: none;
+          width: 100%;
+          height: 6px;
+          background: rgba(142, 111, 247, 0.2);
+          border-radius: 3px;
+          outline: none;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 20px;
+          height: 20px;
+          background: #8E6FF7;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.3s ease;
+      }
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+          transform: scale(1.2);
+      }
+
+      .newsletter-input {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(142, 111, 247, 0.3);
+          color: white;
+          outline: none;
+          transition: all 0.3s ease;
+      }
+
+      .newsletter-input:focus {
+          border-color: #8E6FF7;
+          box-shadow: 0 0 0 2px rgba(142, 111, 247, 0.2);
+      }
+
+      .subscribe-btn {
+          background: #8E6FF7;
+          color: white;
+          transition: all 0.3s ease;
+      }
+
+      .subscribe-btn:hover {
+          background: #7d5fe6;
+          transform: translateY(-2px);
+      }
+
+      .social-icon {
+          transition: all 0.3s ease;
+      }
+
+      .social-icon:hover {
+          transform: translateY(-3px);
+          color: #8E6FF7;
+      }
+
+      .back-to-top {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          width: 50px;
+          height: 50px;
+          background: rgba(20, 20, 40, 0.7);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(142, 111, 247, 0.3);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          cursor: pointer;
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.3s ease;
+          z-index: 100;
+      }
+
+      .back-to-top.visible {
+          opacity: 1;
+          transform: translateY(0);
+      }
+
+      .back-to-top:hover {
+          background: rgba(142, 111, 247, 0.7);
+      }
+
+      .loading-screen {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: #0a0a14;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          transition: opacity 0.5s ease;
+      }
+
+      .loading-planet {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 30% 30%, #a78bff, #6e4fd1 40%, #2c1d6d 80%);
+          box-shadow: 0 0 30px rgba(142, 111, 247, 0.4);
+          position: relative;
+          animation: pulse-loading 2s infinite alternate;
+      }
+
+      @keyframes pulse-loading {
+          0% { transform: scale(0.9); box-shadow: 0 0 30px rgba(142, 111, 247, 0.4); }
+          100% { transform: scale(1.1); box-shadow: 0 0 50px rgba(142, 111, 247, 0.6); }
+      }
+
+      .loading-orbit {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 160px;
+          height: 160px;
+          border-radius: 50%;
+          border: 1px solid rgba(142, 111, 247, 0.3);
+          transform: translate(-50%, -50%);
+      }
+
+      .loading-satellite {
+          position: absolute;
+          top: 0;
+          left: 50%;
+          width: 10px;
+          height: 10px;
+          background-color: #8E6FF7;
+          border-radius: 50%;
+          transform: translateX(-50%);
+          animation: orbit-loading 2s linear infinite;
+      }
+
+      @keyframes orbit-loading {
+          0% { transform: translateX(-50%) rotate(0deg) translateY(-80px) rotate(0deg); }
+          100% { transform: translateX(-50%) rotate(360deg) translateY(-80px) rotate(-360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loading-screen" id="loadingScreen">
+      <div class="relative">
+        <div class="loading-planet"></div>
+        <div class="loading-orbit">
+          <div class="loading-satellite"></div>
+        </div>
+      </div>
+    </div>
+    <div class="custom-cursor" id="customCursor"></div>
+    <div class="cursor-dot" id="cursorDot"></div>
+
+    <div id="starfield"></div>
+    <header class="relative min-h-screen flex flex-col">
+      <nav class="absolute top-0 left-0 w-full z-50 py-6 px-8">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+          <div class="font-['Pacifico'] text-2xl text-white">
+            <span class="text-primary">K218b</span>
+          </div>
+          <div class="hidden md:flex space-x-8">
+            <a
+              href="#home"
+              class="nav-link text-white hover:text-primary transition-colors"
+              >Home</a
+            >
+            <a
+              href="#about"
+              class="nav-link text-white hover:text-primary transition-colors"
+              >About</a
+            >
+            <a
+              href="#features"
+              class="nav-link text-white hover:text-primary transition-colors"
+              >Features</a
+            >
+            <a
+              href="#contact"
+              class="nav-link text-white hover:text-primary transition-colors"
+              >Contact</a
+            >
+          </div>
+          <button
+            class="md:hidden w-10 h-10 flex items-center justify-center text-white !rounded-button"
+          >
+            <i class="ri-menu-line ri-lg"></i>
+          </button>
+        </div>
+      </nav>
+
+      <div
+        id="home"
+        class="flex-1 flex items-center justify-center w-full relative overflow-hidden"
+      >
+        <div
+          class="absolute inset-0 z-0"
+          style="background-image: url('https://readdy.ai/api/search-image?query=deep%20space%20background%20with%20distant%20stars%20and%20nebulas%2C%20cosmic%20dust%2C%20dark%20space%20with%20subtle%20purple%20and%20blue%20hues%2C%20high%20resolution%20space%20photography%2C%20extremely%20dark%20background%20with%20minimal%20stars%2C%20perfect%20for%20text%20overlay%2C%20professional%20astronomy%20photography&width=1920&height=1080&seq=1&orientation=landscape'); background-size: cover; background-position: center;"
+        ></div>
+        <div class="absolute inset-0 bg-black bg-opacity-50 z-0"></div>
+
+        <div
+          class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between relative z-10"
+        >
+          <div class="md:w-1/2 text-center md:text-left mb-12 md:mb-0">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6">
+              Discover <span class="text-primary morphing-text">K218b</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-lg">
+              An extraordinary exoplanet with unique characteristics, orbiting a
+              distant star 218 light-years from Earth.
+            </p>
+            <div
+              class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start"
+            >
+              <button
+                class="px-8 py-3 bg-primary text-white font-medium !rounded-button hover:bg-opacity-90 transition-all transform hover:-translate-y-1 whitespace-nowrap"
+              >
+                Explore K218b
+              </button>
+              <button
+                class="px-8 py-3 bg-transparent border border-white text-white font-medium !rounded-button hover:border-primary hover:text-primary transition-all transform hover:-translate-y-1 whitespace-nowrap"
+              >
+                Scientific Data
+              </button>
+            </div>
+          </div>
+          <div class="md:w-1/2 flex justify-center">
+            <div class="planet-wrapper" id="planetWrapper">
+              <div class="planet" id="planet">
+                <div class="planet-ring"></div>
+                <div class="hotspot" style="top: 30%; left: 70%;" id="hotspot1">
+                  <div class="hotspot-info">
+                    <h3 class="text-primary font-bold mb-1">Methane Lakes</h3>
+                    <p class="text-sm">
+                      Vast liquid methane lakes cover 40% of the planet surface,
+                      creating unique atmospheric conditions.
+                    </p>
+                  </div>
+                </div>
+                <div class="hotspot" style="top: 60%; left: 40%;" id="hotspot2">
+                  <div class="hotspot-info">
+                    <h3 class="text-primary font-bold mb-1">
+                      Crystal Mountains
+                    </h3>
+                    <p class="text-sm">
+                      Massive crystalline formations reach heights of 30km,
+                      refracting light in spectacular patterns.
+                    </p>
+                  </div>
+                </div>
+                <div class="hotspot" style="top: 40%; left: 30%;" id="hotspot3">
+                  <div class="hotspot-info">
+                    <h3 class="text-primary font-bold mb-1">Magnetic Storms</h3>
+                    <p class="text-sm">
+                      Powerful electromagnetic storms create aurora displays
+                      visible from space.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="orbit"
+                style="width: 120%; height: 120%; left: -10%; top: -10%;"
+              ></div>
+              <div
+                class="orbit"
+                style="width: 150%; height: 150%; left: -25%; top: -25%;"
+              ></div>
+              <div
+                class="orbit"
+                style="width: 180%; height: 180%; left: -40%; top: -40%;"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="absolute bottom-10 left-1/2 transform -translate-x-1/2 scroll-indicator"
+        >
+          <div
+            class="w-8 h-12 border-2 border-white rounded-full flex justify-center"
+          >
+            <div
+              class="w-1 h-3 bg-white rounded-full mt-2 animate-bounce"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="about" class="py-20 relative overflow-hidden">
+      <div class="vector-wave" style="top: 0; transform: rotate(180deg);"></div>
+
+      <div class="max-w-7xl mx-auto px-6 relative z-10">
+        <div class="text-center mb-16">
+          <h2 class="text-4xl font-bold mb-4">
+            About <span class="text-primary">K218b</span>
+          </h2>
+          <p class="text-xl text-gray-400 max-w-3xl mx-auto">
+            Discovered in 2024, K218b represents one of the most fascinating
+            exoplanets ever found, with characteristics that challenge our
+            understanding of planetary formation.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="info-card p-8 rounded">
+            <div class="flex justify-center mb-6">
+              <div
+                class="vector-icon w-16 h-16 flex items-center justify-center text-primary"
+              >
+                <i class="ri-planet-line ri-3x"></i>
+              </div>
+            </div>
+            <h3 class="text-2xl font-bold text-center mb-4">
+              Physical Properties
+            </h3>
+            <ul class="space-y-3">
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Diameter: 142,984 km (1.12x Jupiter)</span>
+              </li>
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Mass: 2.3x Jupiter</span>
+              </li>
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Gravity: 3.2x Earth</span>
+              </li>
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Composition: Gas giant with solid core</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="info-card p-8 rounded">
+            <div class="flex justify-center mb-6">
+              <div
+                class="vector-icon w-16 h-16 flex items-center justify-center text-primary"
+              >
+                <i class="ri-sun-line ri-3x"></i>
+              </div>
+            </div>
+            <h3 class="text-2xl font-bold text-center mb-4">
+              Orbital Characteristics
+            </h3>
+            <ul class="space-y-3">
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Star: K-type orange dwarf</span>
+              </li>
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Distance from star: 0.8 AU</span>
+              </li>
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Orbital period: 218 Earth days</span>
+              </li>
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Rotational period: 16 Earth hours</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="info-card p-8 rounded">
+            <div class="flex justify-center mb-6">
+              <div
+                class="vector-icon w-16 h-16 flex items-center justify-center text-primary"
+              >
+                <i class="ri-cloud-line ri-3x"></i>
+              </div>
+            </div>
+            <h3 class="text-2xl font-bold text-center mb-4">Atmosphere</h3>
+            <ul class="space-y-3">
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Composition: Hydrogen, Helium, Methane</span>
+              </li>
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Pressure: 12x Earth atmosphere</span>
+              </li>
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Temperature range: -120°C to 80°C</span>
+              </li>
+              <li class="flex items-center">
+                <span
+                  class="w-6 h-6 flex items-center justify-center mr-3 text-primary"
+                >
+                  <i class="ri-checkbox-circle-line"></i>
+                </span>
+                <span>Unique feature: Bioluminescent clouds</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="py-20 relative overflow-hidden bg-gray-950">
+      <div class="max-w-7xl mx-auto px-6 relative z-10">
+        <div class="text-center mb-16">
+          <h2 class="text-4xl font-bold mb-4">
+            Unique <span class="text-primary">Features</span>
+          </h2>
+          <p class="text-xl text-gray-400 max-w-3xl mx-auto">
+            K218b possesses several extraordinary characteristics that make it
+            one of the most fascinating exoplanets in our galactic neighborhood.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div class="relative">
+            <div class="aspect-w-16 aspect-h-9 rounded overflow-hidden">
+              <img
+                src="https://readdy.ai/api/search-image?query=alien%20landscape%20with%20methane%20lakes%2C%20crystal%20mountains%20in%20background%2C%20purple%20sky%20with%20aurora%20borealis%2C%20gas%20giant%20planet%20surface%2C%20science%20fiction%20landscape%2C%20alien%20world%20with%20strange%20rock%20formations%2C%20professional%20digital%20art%2C%20cinematic%20lighting%2C%20high%20detail&width=800&height=600&seq=2&orientation=landscape"
+                alt="K218b Landscape"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div
+              class="absolute -bottom-6 -right-6 w-32 h-32 bg-primary bg-opacity-10 rounded-full"
+            ></div>
+            <div
+              class="absolute -top-6 -left-6 w-24 h-24 bg-primary bg-opacity-10 rounded-full"
+            ></div>
+          </div>
+          <div>
+            <h3 class="text-3xl font-bold mb-6">Extraordinary Landscape</h3>
+
+            <div class="space-y-6">
+              <div class="flex items-start">
+                <div
+                  class="w-12 h-12 flex items-center justify-center text-primary mr-4 mt-1"
+                >
+                  <i class="ri-water-flash-line ri-2x"></i>
+                </div>
+                <div>
+                  <h4 class="text-xl font-semibold mb-2">Methane Lakes</h4>
+                  <p class="text-gray-400">
+                    Vast liquid methane lakes cover significant portions of the
+                    planet, creating a reflective surface visible from space
+                    telescopes.
+                  </p>
+                  <div class="mt-3">
+                    <div class="flex justify-between text-sm mb-1">
+                      <span>Surface Coverage</span>
+                      <span>40%</span>
+                    </div>
+                    <div class="progress-bar">
+                      <div class="progress-fill" style="width: 40%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div
+                  class="w-12 h-12 flex items-center justify-center text-primary mr-4 mt-1"
+                >
+                  <i class="ri-mountain-line ri-2x"></i>
+                </div>
+                <div>
+                  <h4 class="text-xl font-semibold mb-2">Crystal Mountains</h4>
+                  <p class="text-gray-400">
+                    Massive crystalline formations reaching heights of 30km,
+                    created through unique high-pressure geological processes.
+                  </p>
+                  <div class="mt-3">
+                    <div class="flex justify-between text-sm mb-1">
+                      <span>Height Comparison</span>
+                      <span>3x Everest</span>
+                    </div>
+                    <div class="progress-bar">
+                      <div class="progress-fill" style="width: 75%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div
+                  class="w-12 h-12 flex items-center justify-center text-primary mr-4 mt-1"
+                >
+                  <i class="ri-flashlight-line ri-2x"></i>
+                </div>
+                <div>
+                  <h4 class="text-xl font-semibold mb-2">
+                    Electromagnetic Phenomena
+                  </h4>
+                  <p class="text-gray-400">
+                    Powerful magnetic fields create spectacular aurora displays
+                    and electromagnetic storms visible from space.
+                  </p>
+                  <div class="mt-3">
+                    <div class="flex justify-between text-sm mb-1">
+                      <span>Magnetic Field Strength</span>
+                      <span>20x Earth</span>
+                    </div>
+                    <div class="progress-bar">
+                      <div class="progress-fill" style="width: 90%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-24">
+          <h3 class="text-3xl font-bold text-center mb-12">
+            Atmospheric Composition
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div class="mb-8">
+                <h4 class="text-xl font-semibold mb-4">Temperature Range</h4>
+                <div class="temperature-gradient relative h-10 mb-2">
+                  <div
+                    class="temperature-marker absolute"
+                    style="left: 60%"
+                  ></div>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span>-120°C</span>
+                  <span>Night/Day Transition</span>
+                  <span>80°C</span>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <span>Hydrogen</span>
+                    <span>64%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: 64%"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <span>Helium</span>
+                    <span>28%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: 28%"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <span>Methane</span>
+                    <span>5%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: 5%"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <span>Other Gases</span>
+                    <span>3%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: 3%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="relative">
+                <div class="aspect-w-4 aspect-h-3 rounded overflow-hidden">
+                  <img
+                    src="https://readdy.ai/api/search-image?query=gas%20giant%20planet%20atmosphere%20visualization%2C%20layers%20of%20clouds%20in%20different%20colors%2C%20swirling%20patterns%20of%20gases%2C%20scientific%20visualization%20of%20planet%20atmosphere%2C%20professional%20digital%20art%2C%20highly%20detailed%20atmospheric%20layers%2C%20purple%20and%20blue%20hues%2C%20scientific%20accuracy&width=800&height=600&seq=3&orientation=landscape"
+                    alt="K218b Atmosphere"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+                <div
+                  class="absolute -bottom-4 -left-4 w-24 h-24 bg-primary bg-opacity-10 rounded-full"
+                ></div>
+                <div
+                  class="absolute -top-4 -right-4 w-16 h-16 bg-primary bg-opacity-10 rounded-full"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-20 relative overflow-hidden">
+      <div class="max-w-7xl mx-auto px-6 relative z-10">
+        <div class="text-center mb-16">
+          <h2 class="text-4xl font-bold mb-4">
+            Scientific <span class="text-primary">Data</span>
+          </h2>
+          <p class="text-xl text-gray-400 max-w-3xl mx-auto">
+            Comprehensive analysis of K218b's characteristics based on the
+            latest observational data from space telescopes.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <div class="info-card p-8 rounded">
+            <h3 class="text-2xl font-bold mb-6">Orbital Comparison</h3>
+            <div id="orbitalChart" class="w-full h-80"></div>
+          </div>
+
+          <div class="info-card p-8 rounded">
+            <h3 class="text-2xl font-bold mb-6">Size Comparison</h3>
+            <div id="sizeChart" class="w-full h-80"></div>
+          </div>
+        </div>
+
+        <div class="mt-12">
+          <div class="info-card p-8 rounded">
+            <h3 class="text-2xl font-bold mb-6">Temperature Variations</h3>
+            <div id="temperatureChart" class="w-full h-80"></div>
+          </div>
+        </div>
+
+        <div class="mt-16">
+          <h3 class="text-3xl font-bold text-center mb-8">
+            Discovery Timeline
+          </h3>
+
+          <div class="relative">
+            <div
+              class="absolute left-1/2 top-0 bottom-0 w-1 bg-primary bg-opacity-20 transform -translate-x-1/2"
+            ></div>
+
+            <div class="space-y-16 relative">
+              <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 md:pr-12 text-right mb-6 md:mb-0">
+                  <h4 class="text-xl font-semibold mb-2">Initial Detection</h4>
+                  <p class="text-gray-400">
+                    First observed using the James Webb Space Telescope's
+                    transit method, revealing a large body orbiting K-type star.
+                  </p>
+                </div>
+                <div
+                  class="w-10 h-10 rounded-full bg-primary bg-opacity-20 border-4 border-primary flex items-center justify-center z-10 md:mx-0 mx-auto"
+                >
+                  <span class="text-sm font-bold">2024</span>
+                </div>
+                <div
+                  class="md:w-1/2 md:pl-12 md:text-left text-center md:mt-0 mt-6"
+                >
+                  <div class="aspect-w-16 aspect-h-9 rounded overflow-hidden">
+                    <img
+                      src="https://readdy.ai/api/search-image?query=james%20webb%20space%20telescope%20in%20space%2C%20stars%20in%20background%2C%20scientific%20visualization%2C%20high-tech%20space%20telescope%20with%20golden%20mirrors%2C%20professional%20digital%20art%2C%20NASA%20style%20visualization%2C%20highly%20detailed%20space%20hardware&width=400&height=225&seq=4&orientation=landscape"
+                      alt="Initial Detection"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col md:flex-row items-center">
+                <div
+                  class="md:w-1/2 md:pr-12 text-right mb-6 md:mb-0 md:order-1 order-2"
+                >
+                  <div class="aspect-w-16 aspect-h-9 rounded overflow-hidden">
+                    <img
+                      src="https://readdy.ai/api/search-image?query=spectrum%20analysis%20visualization%2C%20colorful%20spectral%20lines%2C%20scientific%20data%20visualization%2C%20professional%20digital%20art%2C%20spectrum%20analysis%20of%20distant%20planet%2C%20scientific%20accuracy%2C%20high-tech%20visualization&width=400&height=225&seq=5&orientation=landscape"
+                      alt="Spectral Analysis"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="w-10 h-10 rounded-full bg-primary bg-opacity-20 border-4 border-primary flex items-center justify-center z-10 md:mx-0 mx-auto md:order-2 order-1"
+                >
+                  <span class="text-sm font-bold">2025</span>
+                </div>
+                <div
+                  class="md:w-1/2 md:pl-12 md:text-left text-center md:mt-0 mt-6 md:order-3 order-3"
+                >
+                  <h4 class="text-xl font-semibold mb-2">Spectral Analysis</h4>
+                  <p class="text-gray-400">
+                    Detailed spectroscopic analysis revealed atmospheric
+                    composition and unique methane signatures.
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 md:pr-12 text-right mb-6 md:mb-0">
+                  <h4 class="text-xl font-semibold mb-2">Surface Mapping</h4>
+                  <p class="text-gray-400">
+                    Advanced imaging techniques allowed for the first partial
+                    mapping of surface features, revealing methane lakes and
+                    crystalline formations.
+                  </p>
+                </div>
+                <div
+                  class="w-10 h-10 rounded-full bg-primary bg-opacity-20 border-4 border-primary flex items-center justify-center z-10 md:mx-0 mx-auto"
+                >
+                  <span class="text-sm font-bold">2026</span>
+                </div>
+                <div
+                  class="md:w-1/2 md:pl-12 md:text-left text-center md:mt-0 mt-6"
+                >
+                  <div class="aspect-w-16 aspect-h-9 rounded overflow-hidden">
+                    <img
+                      src="https://readdy.ai/api/search-image?query=planet%20surface%20mapping%20visualization%2C%20topographical%20map%20of%20alien%20planet%2C%20scientific%20visualization%2C%20professional%20digital%20art%2C%20planetary%20mapping%20with%20color-coded%20elevation%2C%20high-tech%20visualization%2C%20scientific%20accuracy&width=400&height=225&seq=6&orientation=landscape"
+                      alt="Surface Mapping"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="py-20 relative overflow-hidden bg-gray-950">
+      <div class="vector-wave" style="top: 0; transform: rotate(180deg);"></div>
+
+      <div class="max-w-7xl mx-auto px-6 relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 class="text-4xl font-bold mb-6">
+              Stay <span class="text-primary">Updated</span>
+            </h2>
+            <p class="text-xl text-gray-400 mb-8">
+              Subscribe to our newsletter to receive the latest discoveries and
+              research findings about K218b and other exoplanets.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 mb-8">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                class="newsletter-input px-6 py-3 rounded flex-1 border-none"
+              />
+              <button
+                class="subscribe-btn px-8 py-3 font-medium !rounded-button whitespace-nowrap"
+              >
+                Subscribe
+              </button>
+            </div>
+
+            <div class="space-y-4">
+              <div class="flex items-start">
+                <div
+                  class="w-10 h-10 flex items-center justify-center text-primary mr-4"
+                >
+                  <i class="ri-mail-line ri-lg"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Email</h4>
+                  <p class="text-gray-400">contact@k218b-research.org</p>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div
+                  class="w-10 h-10 flex items-center justify-center text-primary mr-4"
+                >
+                  <i class="ri-map-pin-line ri-lg"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Research Center</h4>
+                  <p class="text-gray-400">
+                    Exoplanet Research Institute<br />Cambridge, MA 02138
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start">
+                <div
+                  class="w-10 h-10 flex items-center justify-center text-primary mr-4"
+                >
+                  <i class="ri-phone-line ri-lg"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Phone</h4>
+                  <p class="text-gray-400">+1 (617) 555-2184</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="relative">
+              <div class="aspect-w-1 aspect-h-1 rounded overflow-hidden">
+                <img
+                  src="https://readdy.ai/api/search-image?query=futuristic%20research%20center%20for%20astronomy%2C%20modern%20architecture%20with%20glass%20and%20steel%2C%20space%20observatory%20with%20telescopes%2C%20professional%20architectural%20visualization%2C%20scientific%20research%20facility%2C%20night%20scene%20with%20stars%20visible%20through%20glass%20dome%2C%20high-tech%20research%20facility&width=600&height=600&seq=7&orientation=squarish"
+                  alt="Research Center"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div
+                class="absolute -bottom-6 -right-6 w-32 h-32 bg-primary bg-opacity-10 rounded-full"
+              ></div>
+              <div
+                class="absolute -top-6 -left-6 w-24 h-24 bg-primary bg-opacity-10 rounded-full"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="py-12 bg-gray-900">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+          <div>
+            <div class="font-['Pacifico'] text-2xl text-white mb-4">
+              <span class="text-primary">K218b</span>
+            </div>
+            <p class="text-gray-400 mb-6">
+              Exploring the mysteries of exoplanet K218b and advancing our
+              understanding of distant worlds.
+            </p>
+            <div class="flex space-x-4">
+              <a
+                href="#"
+                class="social-icon w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary"
+              >
+                <i class="ri-twitter-x-line ri-lg"></i>
+              </a>
+              <a
+                href="#"
+                class="social-icon w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary"
+              >
+                <i class="ri-facebook-line ri-lg"></i>
+              </a>
+              <a
+                href="#"
+                class="social-icon w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary"
+              >
+                <i class="ri-instagram-line ri-lg"></i>
+              </a>
+              <a
+                href="#"
+                class="social-icon w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary"
+              >
+                <i class="ri-youtube-line ri-lg"></i>
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="#home"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >Home</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#about"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >About</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#features"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >Features</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#contact"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-semibold mb-4">Resources</h4>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >Research Papers</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >Data Archive</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >Visualization Tools</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >Educational Materials</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-semibold mb-4">Research Partners</h4>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >NASA</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >ESA</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >MIT Astrophysics</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-primary transition-colors"
+                  >Caltech IPAC</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-800 pt-8">
+          <div class="flex flex-col md:flex-row justify-between items-center">
+            <p class="text-gray-500 mb-4 md:mb-0">
+              © 2025 K218b Research Initiative. All rights reserved.
+            </p>
+            <div class="flex space-x-6">
+              <a
+                href="#"
+                class="text-gray-500 hover:text-primary transition-colors"
+                >Privacy Policy</a
+              >
+              <a
+                href="#"
+                class="text-gray-500 hover:text-primary transition-colors"
+                >Terms of Service</a
+              >
+              <a
+                href="#"
+                class="text-gray-500 hover:text-primary transition-colors"
+                >Cookie Policy</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <div class="back-to-top" id="backToTop">
+      <i class="ri-arrow-up-line ri-lg"></i>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Loading screen
+        setTimeout(function () {
+          const loadingScreen = document.getElementById("loadingScreen");
+          loadingScreen.style.opacity = "0";
+          setTimeout(function () {
+            loadingScreen.style.display = "none";
+          }, 500);
+        }, 2000);
+
+        // Custom cursor
+        const customCursor = document.getElementById("customCursor");
+        const cursorDot = document.getElementById("cursorDot");
+
+        document.addEventListener("mousemove", function (e) {
+          customCursor.style.left = e.clientX + "px";
+          customCursor.style.top = e.clientY + "px";
+
+          cursorDot.style.left = e.clientX + "px";
+          cursorDot.style.top = e.clientY + "px";
+        });
+
+        document.addEventListener("mousedown", function () {
+          customCursor.style.width = "15px";
+          customCursor.style.height = "15px";
+        });
+
+        document.addEventListener("mouseup", function () {
+          customCursor.style.width = "20px";
+          customCursor.style.height = "20px";
+        });
+
+        // Starfield background
+        const starfield = document.getElementById("starfield");
+        const starsCount = 200;
+
+        for (let i = 0; i < starsCount; i++) {
+          const star = document.createElement("div");
+          star.classList.add("star");
+
+          const size = Math.random() * 2;
+          star.style.width = size + "px";
+          star.style.height = size + "px";
+
+          star.style.left = Math.random() * 100 + "vw";
+          star.style.top = Math.random() * 200 + "vh";
+
+          star.style.animationDelay = Math.random() * 3 + "s";
+
+          starfield.appendChild(star);
+        }
+
+        // Constellation lines
+        const constellationLinesCount = 15;
+
+        for (let i = 0; i < constellationLinesCount; i++) {
+          const line = document.createElement("div");
+          line.classList.add("constellation-line");
+
+          const width = Math.random() * 150 + 50;
+          const height = 1;
+          line.style.width = width + "px";
+          line.style.height = height + "px";
+
+          line.style.left = Math.random() * 100 + "vw";
+          line.style.top = Math.random() * 200 + "vh";
+
+          const rotation = Math.random() * 360;
+          line.style.transform = `rotate(${rotation}deg)`;
+
+          line.style.animationDelay = Math.random() * 3 + "s";
+
+          starfield.appendChild(line);
+        }
+
+        // Planet spots
+        const planet = document.getElementById("planet");
+        const spotsCount = 20;
+
+        for (let i = 0; i < spotsCount; i++) {
+          const spot = document.createElement("div");
+          spot.classList.add("planet-spot");
+
+          const size = Math.random() * 50 + 10;
+          spot.style.width = size + "px";
+          spot.style.height = size + "px";
+
+          spot.style.left = Math.random() * 100 + "%";
+          spot.style.top = Math.random() * 100 + "%";
+
+          const opacity = Math.random() * 0.2;
+          spot.style.backgroundColor = `rgba(255, 255, 255, ${opacity})`;
+
+          planet.appendChild(spot);
+        }
+
+        // Orbiting dots
+        const orbits = document.querySelectorAll(".orbit");
+
+        orbits.forEach((orbit, index) => {
+          const orbitWidth = parseInt(orbit.style.width);
+          const orbitDot = document.createElement("div");
+          orbitDot.classList.add("orbit-dot");
+
+          const orbitAnimation = document.createElement("style");
+          orbitAnimation.innerHTML = `
+                          @keyframes orbit${index} {
+                              0% { transform: rotate(0deg) translateX(${orbitWidth / 2}px) rotate(0deg); }
+                              100% { transform: rotate(360deg) translateX(${orbitWidth / 2}px) rotate(-360deg); }
+                          }
+                      `;
+          document.head.appendChild(orbitAnimation);
+
+          orbitDot.style.animation = `orbit${index} ${(index + 2) * 10}s linear infinite`;
+          orbitDot.style.top = "50%";
+          orbitDot.style.left = "50%";
+
+          orbit.appendChild(orbitDot);
+        });
+
+        // Particle effect on mouse move
+        const planetWrapper = document.getElementById("planetWrapper");
+
+        planetWrapper.addEventListener("mousemove", function (e) {
+          const rect = planetWrapper.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          const particle = document.createElement("div");
+          particle.classList.add("particle");
+
+          const size = Math.random() * 4 + 2;
+          particle.style.width = size + "px";
+          particle.style.height = size + "px";
+
+          particle.style.left = x + "px";
+          particle.style.top = y + "px";
+
+          planetWrapper.appendChild(particle);
+
+          setTimeout(() => {
+            particle.style.opacity = "0.6";
+            particle.style.transform = `translate(${(Math.random() - 0.5) * 50}px, ${(Math.random() - 0.5) * 50}px)`;
+
+            setTimeout(() => {
+              particle.remove();
+            }, 300);
+          }, 10);
+        });
+
+        // Back to top button
+        const backToTop = document.getElementById("backToTop");
+
+        window.addEventListener("scroll", function () {
+          if (window.scrollY > 500) {
+            backToTop.classList.add("visible");
+          } else {
+            backToTop.classList.remove("visible");
+          }
+        });
+
+        backToTop.addEventListener("click", function () {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+          });
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            const targetId = this.getAttribute("href");
+            const targetElement = document.querySelector(targetId);
+
+            if (targetElement) {
+              window.scrollTo({
+                top: targetElement.offsetTop,
+                behavior: "smooth",
+              });
+            }
+          });
+        });
+
+        // Vector lines connecting info cards on scroll
+        const infoCards = document.querySelectorAll(".info-card");
+
+        if (infoCards.length > 1) {
+          for (let i = 0; i < infoCards.length - 1; i++) {
+            const card1 = infoCards[i];
+            const card2 = infoCards[i + 1];
+
+            const line = document.createElement("div");
+            line.classList.add("vector-line");
+            document.body.appendChild(line);
+
+            const updateLine = () => {
+              const rect1 = card1.getBoundingClientRect();
+              const rect2 = card2.getBoundingClientRect();
+
+              const x1 = rect1.left + rect1.width / 2;
+              const y1 = rect1.bottom;
+              const x2 = rect2.left + rect2.width / 2;
+              const y2 = rect2.top;
+
+              const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+              const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+
+              line.style.width = length + "px";
+              line.style.left = x1 + "px";
+              line.style.top = y1 + "px";
+              line.style.transform = `rotate(${angle}deg)`;
+
+              if (rect1.bottom > 0 && rect2.top < window.innerHeight) {
+                line.style.opacity = "0.3";
+              } else {
+                line.style.opacity = "0";
+              }
+            };
+
+            window.addEventListener("scroll", updateLine);
+            window.addEventListener("resize", updateLine);
+            updateLine();
+          }
+        }
+
+        // Initialize charts
+        // Orbital Comparison Chart
+        const orbitalChart = echarts.init(document.getElementById("orbitalChart"));
+        const orbitalOption = {
+          animation: false,
+          tooltip: {
+            trigger: "axis",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            textStyle: {
+              color: "#1f2937",
+            },
+          },
+          legend: {
+            data: ["K218b", "Jupiter", "Earth"],
+            textStyle: {
+              color: "#e0e0ff",
+            },
+          },
+          grid: {
+            left: "3%",
+            right: "4%",
+            bottom: "3%",
+            containLabel: true,
+          },
+          xAxis: {
+            type: "category",
+            data: [
+              "Distance from Star (AU)",
+              "Orbital Period (Earth Days)",
+              "Orbital Speed (km/s)",
+            ],
+            axisLine: {
+              lineStyle: {
+                color: "#4b5563",
+              },
+            },
+            axisLabel: {
+              color: "#e0e0ff",
+            },
+          },
+          yAxis: {
+            type: "log",
+            name: "Relative Value (log scale)",
+            axisLine: {
+              lineStyle: {
+                color: "#4b5563",
+              },
+            },
+            axisLabel: {
+              color: "#e0e0ff",
+            },
+            splitLine: {
+              lineStyle: {
+                color: "#374151",
+              },
+            },
+          },
+          series: [
+            {
+              name: "K218b",
+              type: "bar",
+              data: [0.8, 218, 35],
+              itemStyle: {
+                color: "rgba(87, 181, 231, 1)",
+                borderRadius: 6,
+              },
+            },
+            {
+              name: "Jupiter",
+              type: "bar",
+              data: [5.2, 4380, 13],
+              itemStyle: {
+                color: "rgba(141, 211, 199, 1)",
+                borderRadius: 6,
+              },
+            },
+            {
+              name: "Earth",
+              type: "bar",
+              data: [1, 365, 30],
+              itemStyle: {
+                color: "rgba(251, 191, 114, 1)",
+                borderRadius: 6,
+              },
+            },
+          ],
+        };
+        orbitalChart.setOption(orbitalOption);
+
+        // Size Comparison Chart
+        const sizeChart = echarts.init(document.getElementById("sizeChart"));
+        const sizeOption = {
+          animation: false,
+          tooltip: {
+            trigger: "item",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            textStyle: {
+              color: "#1f2937",
+            },
+          },
+          legend: {
+            orient: "vertical",
+            right: 10,
+            top: "center",
+            textStyle: {
+              color: "#e0e0ff",
+            },
+          },
+          series: [
+            {
+              name: "Planet Size",
+              type: "pie",
+              radius: ["40%", "70%"],
+              avoidLabelOverlap: false,
+              itemStyle: {
+                borderRadius: 10,
+                borderColor: "#0a0a14",
+                borderWidth: 2,
+              },
+              label: {
+                show: false,
+              },
+              emphasis: {
+                label: {
+                  show: true,
+                  formatter: "{b}: {c} x Earth",
+                  fontSize: "14",
+                  fontWeight: "bold",
+                },
+              },
+              labelLine: {
+                show: false,
+              },
+              data: [
+                { value: 11.2, name: "K218b" },
+                { value: 11, name: "Jupiter" },
+                { value: 9.4, name: "Saturn" },
+                { value: 1, name: "Earth" },
+              ],
+              color: [
+                "rgba(87, 181, 231, 1)",
+                "rgba(141, 211, 199, 1)",
+                "rgba(251, 191, 114, 1)",
+                "rgba(252, 141, 98, 1)",
+              ],
+            },
+          ],
+        };
+        sizeChart.setOption(sizeOption);
+
+        // Temperature Chart
+        const temperatureChart = echarts.init(
+          document.getElementById("temperatureChart"),
+        );
+        const temperatureOption = {
+          animation: false,
+          tooltip: {
+            trigger: "axis",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            textStyle: {
+              color: "#1f2937",
+            },
+          },
+          legend: {
+            data: ["Day Side", "Night Side", "Terminator Zone"],
+            textStyle: {
+              color: "#e0e0ff",
+            },
+          },
+          grid: {
+            left: "3%",
+            right: "4%",
+            bottom: "3%",
+            containLabel: true,
+          },
+          xAxis: {
+            type: "category",
+            boundaryGap: false,
+            data: ["Equator", "30°", "60°", "Pole"],
+            axisLine: {
+              lineStyle: {
+                color: "#4b5563",
+              },
+            },
+            axisLabel: {
+              color: "#e0e0ff",
+            },
+          },
+          yAxis: {
+            type: "value",
+            name: "Temperature (°C)",
+            axisLine: {
+              lineStyle: {
+                color: "#4b5563",
+              },
+            },
+            axisLabel: {
+              color: "#e0e0ff",
+            },
+            splitLine: {
+              lineStyle: {
+                color: "#374151",
+              },
+            },
+          },
+          series: [
+            {
+              name: "Day Side",
+              type: "line",
+              data: [80, 65, 40, 20],
+              smooth: true,
+              lineStyle: {
+                width: 3,
+              },
+              itemStyle: {
+                color: "rgba(87, 181, 231, 1)",
+              },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  {
+                    offset: 0,
+                    color: "rgba(87, 181, 231, 0.3)",
+                  },
+                  {
+                    offset: 1,
+                    color: "rgba(87, 181, 231, 0.1)",
+                  },
+                ]),
+              },
+              symbol: "none",
+            },
+            {
+              name: "Night Side",
+              type: "line",
+              data: [-120, -100, -80, -60],
+              smooth: true,
+              lineStyle: {
+                width: 3,
+              },
+              itemStyle: {
+                color: "rgba(141, 211, 199, 1)",
+              },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  {
+                    offset: 0,
+                    color: "rgba(141, 211, 199, 0.3)",
+                  },
+                  {
+                    offset: 1,
+                    color: "rgba(141, 211, 199, 0.1)",
+                  },
+                ]),
+              },
+              symbol: "none",
+            },
+            {
+              name: "Terminator Zone",
+              type: "line",
+              data: [-20, -30, -40, -45],
+              smooth: true,
+              lineStyle: {
+                width: 3,
+              },
+              itemStyle: {
+                color: "rgba(251, 191, 114, 1)",
+              },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  {
+                    offset: 0,
+                    color: "rgba(251, 191, 114, 0.3)",
+                  },
+                  {
+                    offset: 1,
+                    color: "rgba(251, 191, 114, 0.1)",
+                  },
+                ]),
+              },
+              symbol: "none",
+            },
+          ],
+        };
+        temperatureChart.setOption(temperatureOption);
+
+        // Resize charts when window size changes
+        window.addEventListener("resize", function () {
+          orbitalChart.resize();
+          sizeChart.resize();
+          temperatureChart.resize();
+        });
+      });
+    </script>
+  </body>
+</html>
